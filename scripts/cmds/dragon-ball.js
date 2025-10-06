@@ -86,7 +86,7 @@ const gameState = {};
 module.exports = {
   config: { 
     name: "dragon-ball-storm", 
-    version: "1.0",
+    version: "1.1",
     author: "kyo soma",
     role: 0,
     category: "game",
@@ -114,12 +114,11 @@ module.exports = {
       lastPlayer: null
     };
 
-    await message.reply({
-      body: `🎮 𝗗𝗥𝗔𝗚𝗢𝗡 𝗕𝗔𝗟𝗟 𝗦𝗧𝗢𝗥𝗠 ⚡\n━━━━━━━━━━━━━━\nEnvoyez "start" pour commencer`,
-      attachment: await global.utils.getStreamFromURL("https://i.ibb.co/qBz5wzk/dragonball.jpg")
-    });
+    await message.reply(
+      `🎮 𝗗𝗥𝗔𝗚𝗢𝗡 𝗕𝗔𝗟𝗟 𝗦𝗧𝗢𝗥𝗠 ⚡\n━━━━━━━━━━━━━━\nEnvoyez "start" pour commencer le combat !`
+    );
   },
 
-  // 👉 Copie-colle le bloc `onChat` de ton naruto-storm ici
-  // et change juste la variable `characters` par celle de Dragon Ball.
+  // ⚡👉 Ici tu dois copier le bloc `onChat` de ton naruto-storm
+  // et remplacer la variable `characters` par celle-ci de Dragon Ball.
 };
