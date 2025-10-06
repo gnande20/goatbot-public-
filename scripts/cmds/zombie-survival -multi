@@ -1,0 +1,133 @@
+const events = [
+  { text: "Une horde de zombies attaque le groupe ! 🧟🧟🧟", damage: 20, energyLoss: 10 },
+  { text: "Vous trouvez un abri pour vous reposer 🏚️", heal: 15, energyGain: 10 },
+  { text: "Un zombie surgit et mord un joueur au hasard ! 🧟‍♂️", damageRandom: 25 },
+  { text: "Vous trouvez un coffre avec des munitions 🔫", damageZombie: 30 },
+  { text: "Vous trouvez de la nourriture 🍖", heal: 10, energyGain: 5 },
+  { text: "Un chien zombie attaque la troupe 🐕🧟", damage: 15 },
+  { text: "Vous buvez de l’eau claire 💧", heal: 20, energyGain: 10 }
+];
+
+const gameState = {};
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+module.exports = {
+  config: { 
+    name: "zombie-survival-multi", 
+    version: "1.0",
+    author: "kyo soma",
+    role: 0,
+    category: "game",
+    shortDescription: "Jeu de survie zombie multijoueur",
+    longDescription: "Survivre en équipe face aux zombies avec plusieurs joueurs.",
+    guide: "{p}zombie-survival-multi"
+  },
+
+  onStart: async function ({ message, event }) {
+    const threadID = event.threadID;
+
+    if (!gameState[threadID]) {
+      gameState[threadID] = {
+        players: {},
+        alive: true,
+        round: 1
+      };
+    }
+
+    const playerID = event.senderID;
+    if (!gameState[threadID].players[playerID]) {
+      gameState[threadID].players[playerID] = {
+        name: event.senderID,
+        hp: 100,
+        energy: 100,
+        alive: true
+      };
+    }
+
+    await message.reply(
+      `🧟 Bienvenue dans **Zombie Survival MULTI** !\n\n` +
+      `➡️ Tous les joueurs de cette conversation peuvent taper "join" pour entrer dans la partie.\n` +
+      `➡️ Quand vous êtes prêts, tapez "start".`
+    );
+  },
+
+  onChat: async function ({ message, event }) {
+    const threadID = event.threadID;
+    const input = event.body.toLowerCase();
+    const playerID = event.senderID;
+
+    if (!gameState[threadID]) return;
+
+    // Un joueur rejoint
+    if (input === "join") {
+      if (!gameState[threadID].players[playerID]) {
+        gameState[threadID].players[playerID] = {
+          name: event.senderID,
+          hp: 100,
+          energy: 100,
+          alive: true
+        };
+        return message.reply(`✅ Joueur ajouté !\nActuellement **${Object.keys(gameState[threadID].players).length} survivants**.`);
+      }
+    }
+
+    // Démarrer la partie
+    if (input === "start" && gameState[threadID].alive) {
+      return message.reply(
+        `🎮 Partie commencée !\n➡️ Tapez "play" pour avancer dans l’aventure.\n➡️ Survivants : ${Object.keys(gameState[threadID].players).length}`
+      );
+    }
+
+    // Tour de jeu
+    if (input === "play" && gameState[threadID].alive) {
+      const eventRandom = pickRandom(events);
+      let result = `📖 ${eventRandom.text}\n`;
+
+      for (let pid in gameState[threadID].players) {
+        const player = gameState[threadID].players[pid];
+        if (!player.alive) continue;
+
+        if (eventRandom.damage) {
+          player.hp -= eventRandom.damage;
+          result += `💔 ${pid} perd ${eventRandom.damage} HP.\n`;
+        }
+        if (eventRandom.energyLoss) {
+          player.energy -= eventRandom.energyLoss;
+          result += `🔋 ${pid} perd ${eventRandom.energyLoss} énergie.\n`;
+        }
+        if (eventRandom.heal) {
+          player.hp = Math.min(player.hp + eventRandom.heal, 100);
+          result += `❤️ ${pid} récupère ${eventRandom.heal} HP.\n`;
+        }
+        if (eventRandom.energyGain) {
+          player.energy = Math.min(player.energy + eventRandom.energyGain, 100);
+          result += `🔋 ${pid} regagne ${eventRandom.energyGain} énergie.\n`;
+        }
+        if (eventRandom.damageRandom && Math.random() < 0.5) {
+          player.hp -= eventRandom.damageRandom;
+          result += `💥 ${pid} est attaqué directement et perd ${eventRandom.damageRandom} HP !\n`;
+        }
+
+        // Mort ?
+        if (player.hp <= 0 || player.energy <= 0) {
+          player.alive = false;
+          result += `☠️ ${pid} est mort...\n`;
+        }
+      }
+
+      // Vérifier si tout le monde est mort
+      const survivors = Object.values(gameState[threadID].players).filter(p => p.alive);
+      if (survivors.length === 0) {
+        gameState[threadID].alive = false;
+        result += `\n💀 Toute l’équipe est morte... GAME OVER.`;
+      } else {
+        result += `\n👥 Survivants restants : ${survivors.length}`;
+      }
+
+      return message.reply(result);
+    }
+  }
+};
