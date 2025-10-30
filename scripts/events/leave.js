@@ -3,25 +3,25 @@ const { getTime, drive } = global.utils;
 module.exports = {
   config: {
     name: "leave",
-    version: "1.7",
-    author: "Dan jersey",
+    version: "2.0",
+    author: "Camille 💙",
     category: "events"
   },
 
   langs: {
-    vi: {
-      session1: "sáng",
-      session2: "trưa",
-      session3: "chiều",
-      session4: "tối",
-      defaultLeaveMessage: "{userName} đã rời nhóm. Không có gì thay đổi."
-    },
     en: {
       session1: "matin",
       session2: "midi",
       session3: "après-midi",
       session4: "soir",
-      defaultLeaveMessage: "{userName} a quitté le groupe. Rien de notable."
+      defaultLeaveMessage: `
+╔══════════════════╗
+║   ⚽ BLUE LOCK ⚽  ║
+╠══════════════════╣
+║ {userName} a quitté le groupe !
+║ ⏰ Moment : {session}
+║ 😏 Kiyotaka-style exit
+╚══════════════════╝`
     }
   },
 
@@ -39,31 +39,16 @@ module.exports = {
     const userName = await usersData.getName(leftId);
     const threadName = threadData.threadName;
 
-    // Messages de départ ultra Kiyotaka : analyse subtile + sarcasme
-    const kiyotakaMessages = [
-      `Ah, ${userName} s'en va… prévisible, mais logique.`,
-      `${userName} a quitté le groupe. Je note son absence, même si elle n'a aucune importance.`,
-      `Le départ de ${userName} est… attendu. Rien ne change vraiment.`,
-      `${userName} a quitté. Je me demande si quelqu'un s'en est réellement rendu compte.`,
-      `Intéressant. ${userName} s’en va. Une décision qui révèle beaucoup… ou rien du tout.`,
-      `${userName} disparaît. Comme je l’avais prédit, rien de significatif n’a été perdu.`,
-      `${userName} quitte le groupe. Les dynamiques resteront intactes. Prudent.`,
-      `Je remarque que ${userName} part. Peut-être une stratégie personnelle… ou juste l’ennui.`
+    // Messages de départ Kiyotaka + Blue Lock emojis
+    const messages = [
+      `╔══════════════════╗\n║ ⚽ BLUE LOCK ⚽ ║\n╠══════════════════╣\n║ ${userName} s'en va… prévisible 😏\n║ Groupe : ${threadName}\n║ Moment : ${hours}h\n╚══════════════════╝`,
+      `╔══════════════════╗\n║ ⚡ FOOT ALERT ⚡ ║\n╠══════════════════╣\n║ ${userName} a quitté le groupe 🏟️\n║ Kiyotaka-style exit\n╚══════════════════╝`,
+      `╔══════════════════╗\n║ ⚽ BLUE LOCK ⚽ ║\n╠══════════════════╣\n║ Départ de ${userName} 💨\n║ Moment : ${hours}h\n║ Rien de significatif… 😎\n╚══════════════════╝`,
+      `╔══════════════════╗\n║ 🔥 BLUE LOCK 🔥 ║\n╠══════════════════╣\n║ ${userName} disparaît…\n║ Les dynamiques restent intactes ⚽\n╚══════════════════╝`
     ];
 
-    // Choisir un message aléatoire pour plus de réalisme
-    let leaveMessage = kiyotakaMessages[Math.floor(Math.random() * kiyotakaMessages.length)];
-
-    leaveMessage = leaveMessage
-      .replace(/\{userName\}|\{userNameTag\}/g, userName)
-      .replace(/\{type\}/g, leftId === author ? "a quitté" : "a été expulsé de")
-      .replace(/\{threadName\}|\{boxName\}/g, threadName)
-      .replace(/\{time\}/g, hours)
-      .replace(/\{session\}/g,
-        hours <= 10 ? "matin" :
-        hours <= 12 ? "midi" :
-        hours <= 18 ? "après-midi" : "soir"
-      );
+    // Choisir un message aléatoire
+    let leaveMessage = messages[Math.floor(Math.random() * messages.length)];
 
     const form = { body: leaveMessage };
 
